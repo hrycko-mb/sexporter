@@ -1,11 +1,12 @@
 [project]
-name = "spoti-playlister"
+name = "sexporter"
 version = "0.1.0"
-description = "Add your description here"
+description = "Sporify liked songs exporter"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "click>=8.2.1",
     "dotenv>=0.9.9",
+    "pydantic>=2.11.7",
     "spotipy>=2.25.1",
 ]
