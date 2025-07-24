@@ -1,4 +1,11 @@
+"""Spotify collections iterators.
+
+Spotify API requires pagination of collections of enteties.
+To simplify operating on them, iterators here are introduced.
+"""
+
 from collections.abc import Collection, Iterator
+
 import spotipy
 from schemas import Playlist, PlaylistBatch, Track, TrackBatch, TrackFilter
 
@@ -6,19 +13,22 @@ MAX_SPOTI_STEP = 50
 
 
 def liked_tracks(sp: spotipy.Spotify, *, step: int = MAX_SPOTI_STEP) -> Iterator[Track]:
+    """Iterator over liked tracks."""
     offset = 0
     while (
         results := sp.current_user_saved_tracks(limit=step, offset=offset)
     ) and results.get("items"):
         yield from TrackBatch.model_validate(
-            (item["track"] for item in results["items"])
+            item["track"] for item in results["items"]
         ).root
         offset += step
 
 
 def filtered_tracks(
-    liked_tracks: Iterator[Track], exclude_filters: Collection[TrackFilter]
+    liked_tracks: Iterator[Track],
+    exclude_filters: Collection[TrackFilter],
 ) -> Iterator[Track]:
+    """Iterator over filtered tracks."""
     for track in liked_tracks:
         matches = False
         for filter in exclude_filters:
@@ -28,21 +38,28 @@ def filtered_tracks(
 
 
 def playlist_tracks(
-    sp: spotipy.Spotify, playlist_id: str, *, step: int = MAX_SPOTI_STEP
+    sp: spotipy.Spotify,
+    playlist_id: str,
+    *,
+    step: int = MAX_SPOTI_STEP,
 ) -> Iterator[Track]:
+    """Iterator over playlist tracks."""
     offset = 0
     while (
         results := sp.playlist_items(playlist_id, limit=step, offset=offset)
     ) and results.get("items"):
         yield from TrackBatch.model_validate(
-            (item["track"] for item in results["items"])
+            item["track"] for item in results["items"]
         ).root
         offset += step
 
 
 def user_playlists(
-    sp: spotipy.Spotify, *, step: int = MAX_SPOTI_STEP
+    sp: spotipy.Spotify,
+    *,
+    step: int = MAX_SPOTI_STEP,
 ) -> Iterator[Playlist]:
+    """Iterator over user playlists."""
     offset = 0
     while (
         results := sp.current_user_playlists(limit=step, offset=offset)

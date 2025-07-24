@@ -1,8 +1,8 @@
 import logging
 from pathlib import Path
 
-import spotipy
 import click
+import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
 from sexporter import exporter, iterators
@@ -11,9 +11,11 @@ from sexporter.schemas import ExcludeFilters, Playlist
 logger = logging.getLogger(__name__)
 
 EXPORT_PLAYLIST_NAME = "Ayo, fuck your bad vibes, bro!"
+SCOPE = ["user-library-read", "playlist-modify-public", "ugc-image-upload"]
 
 
 def user_playlist_by_name(sp: spotipy.Spotify, playlist_name: str) -> Playlist | None:
+    """Returns user playlist by name if any."""
     for pl in iterators.user_playlists(sp):
         if pl.name == playlist_name:
             return pl
@@ -22,7 +24,9 @@ def user_playlist_by_name(sp: spotipy.Spotify, playlist_name: str) -> Playlist |
 
 @click.command()
 @click.option(
-    "--playlist-name", default=EXPORT_PLAYLIST_NAME, help="Name of expoted playlist"
+    "--playlist-name",
+    default=EXPORT_PLAYLIST_NAME,
+    help="Name of expoted playlist",
 )
 @click.option(
     "--update-mode",
@@ -48,14 +52,13 @@ def cli(
     cover_image: Path | None,
     exclude_file: Path | None,
 ) -> None:
-    scope = ["user-library-read", "playlist-modify-public", "ugc-image-upload"]
-
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
+    """CLI app."""
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=SCOPE))
 
     exclude_filters = None
     if exclude_file:
         exclude_filters = ExcludeFilters.model_validate_json(
-            exclude_file.read_text()
+            exclude_file.read_text(),
         ).filters
 
     if playlist := user_playlist_by_name(sp, playlist_name):
